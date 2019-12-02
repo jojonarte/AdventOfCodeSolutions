@@ -4,7 +4,7 @@ const MODIFIED_INPUT_FOR_PART1 = [...INPUT];
 MODIFIED_INPUT_FOR_PART1[1] = 12;
 MODIFIED_INPUT_FOR_PART1[2] = 2;
 
-const opts = {
+const operations = {
   1: (inputArray, pos1, pos2, resultPos) => inputArray[inputArray[resultPos]] = inputArray[inputArray[pos1]] + inputArray[inputArray[pos2]],
   2: (inputArray, pos1, pos2, resultPos) => inputArray[inputArray[resultPos]] = inputArray[inputArray[pos1]] * inputArray[inputArray[pos2]],
 };
@@ -24,4 +24,23 @@ const part1Solution = (inputArray, index = 0) => {
   return part1Solution(inputArray, index + 4);
 };
 
+const part2Solution = (inputArray, targetValue) => {
+  for (let i = 0; i <= 99; i ++) {
+    for (let j = 0; j <= 99; j++) {
+      const newArr = [...inputArray];
+      newArr[1] = i;
+      newArr[2] = j;
+      const currentResult = part1Solution(newArr);
+      console.log('CURRENT VALUE', currentResult);
+
+      if (currentResult === targetValue) {
+        return 100 * i + j;
+      }
+    }
+  }
+
+  throw new Error('Value not found');
+};
+
 console.log('solution 1: ', part1Solution(MODIFIED_INPUT_FOR_PART1));
+console.log('solution 2: ', part2Solution(INPUT, 19690720));
