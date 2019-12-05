@@ -3,10 +3,10 @@ const INPUTS = [['R995','D933','L284','U580','R453','U355','L352','U363','L506',
 
 
 const vectorTransform = {
-  R: (coordinates) => ({ ...coordinates, x: ++coordinates.x }),
-  L: (coordinates) => ({ ...coordinates, x: --coordinates.x }),
-  U: (coordinates) => ({ ...coordinates, y: ++coordinates.y }),
-  D: (coordinates) => ({ ...coordinates, y: --coordinates.y }),
+  R: (coordinates, stepCount) => ({ ...coordinates, x: coordinates.x + stepCount }),
+  L: (coordinates, stepCount) => ({ ...coordinates, x: coordinates.x - stepCount }),
+  U: (coordinates, stepCount) => ({ ...coordinates, y: coordinates.y + stepCount }),
+  D: (coordinates, stepCount) => ({ ...coordinates, y: coordinates.y - stepCount }),
 };
 const traverse = steps => {
   let coordinates = {x:0, y:0};
@@ -14,13 +14,11 @@ const traverse = steps => {
 
   for (const step of steps) {
     const direction = step[0];
-    const vector = step.match(/\d+/g)[0];
+    const stepCount = step.match(/\d+/g)[0];
 
-    for (let i = 0; i < vector; i ++) {
-      coordinates = vectorTransform[direction](coordinates);
+    coordinates = vectorTransform[direction](coordinates, parseInt(stepCount, 10));
 
-      traversedCoordinates.push(coordinates)
-    }
+    traversedCoordinates.push(coordinates)
   }
   
   return traversedCoordinates;
@@ -28,16 +26,51 @@ const traverse = steps => {
 
 const getInterSections = (vectorPoints1, vectorPoints2) => {
   let intersectingPoints = [];
+  const baseCoordinate = {x:0, y:0};
 
-  vectorPoints1.forEach(p1 => {
-    vectorPoints2.forEach(p2 => {
-      if (p1.x === p2.x && p1.y === p2.y) {
-        intersectingPoints.push(p1);
+  vectorPoints1.forEach((p1, v1Index) => {
+    const startPoint1 = v1Index === 0 ? baseCoordinate : vectorPoints1[v1Index - 1];
+
+    vectorPoints2.forEach((p2, v2Index) => {
+      const startPoint2 = v2Index === 0 ? baseCoordinate : vectorPoints2[v2Index - 1];
+      const intersection = lineIntersect(startPoint1.x, startPoint1.y, p1.x, p1.y, startPoint2.x, startPoint2.y, p2.x, p2.y);
+      console.log('FOUND INTERSECTION', intersection);
+      if (intersection) {
+        intersectingPoints.push(intersection);
       }
     })
   });
 
   return intersectingPoints;
+};
+
+const lineIntersect = (x1, y1, x2, y2, x3, y3, x4, y4) => {
+
+  // Check if none of the lines are of length 0
+	if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+		return false
+	}
+
+	denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+
+  // Lines are parallel
+	if (denominator === 0) {
+		return false
+	}
+
+	let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+	let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+
+  // is the intersection along the segments
+	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+		return false
+	}
+
+  // Return a object with the x and y coordinates of the intersection
+	let x = x1 + ua * (x2 - x1)
+	let y = y1 + ua * (y2 - y1)
+
+	return {x, y}
 };
 
 const part1Solution = (inputArray) => {
